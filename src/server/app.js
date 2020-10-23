@@ -1,5 +1,6 @@
 const express = require("express");
 const cors = require("cors");
+const morgan = require("morgan");
 const app = express();
 const { extractLectures, extractLectureDetail } = require("./crawlers");
 const {
@@ -19,6 +20,7 @@ app.use(
     limit: "2mb",
   })
 );
+app.use(morgan("tiny"));
 
 app.get("/_health", (_, res) => {
   res.status(204).send("");
@@ -39,12 +41,14 @@ app.post("/downloadLecture", async (req, res) => {
   const lecturePageHTML = req.body;
   const lectureDetail = await extractLectureDetail(lecturePageHTML);
   if (!isLectureDictoryExists(lectureDetail)) {
+    console.log(`download lecture: ${lectureDetail.title}`);
     const directory = makeLectureDirectory(lectureDetail);
     await Promise.all(
       lectureDetail.attachments.map((attachment) =>
         copyAttachment(attachment, directory)
       )
     );
+    console.log(`downloaded lecture: ${lectureDetail.title}`);
   }
   res.status(204).send("");
 });

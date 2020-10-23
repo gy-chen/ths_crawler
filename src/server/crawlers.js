@@ -6,7 +6,7 @@ const _prettifyLectureTitle = (title) =>
     .split(" ")
     .map((w) => w.trim())
     .filter((w) => w)
-    .join("_");
+    .join(" ");
 
 const extractLectures = (coursePage) => {
   const $ = cheerio.load(coursePage);

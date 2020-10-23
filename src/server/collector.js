@@ -13,7 +13,7 @@ const normalizeFileName = (name) =>
     .split(" ")
     .map((w) => w.trim())
     .filter((w) => w)
-    .join(" ");
+    .join("_");
 
 const isLectureDictoryExists = (lectureDetail) => {
   const lectureDirectoryPath = path.resolve(
@@ -44,7 +44,9 @@ const copyAttachment = async (attachment, directory) => {
           directory,
           normalizeFileName(file.file_name)
         );
+        console.log(`copy ${file.file_url} to ${filePath}`);
         await fsPromises.writeFile(filePath, await download(file.file_url));
+        console.log(`copied ${file.file_url} to ${filePath}`);
       })
     );
   }
