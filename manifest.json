@@ -1,0 +1,14 @@
+{
+  "name": "Tomlin Harmonica School Crawler",
+  "version": "0.1",
+  "description": "Extension for crawl Tomlin harmonica school lesson page",
+  "permissions": ["activeTab", "declarativeContent"],
+  "background": {
+    "scripts": ["public/background.js"],
+    "persistent": false
+  },
+  "page_action": {
+    "default_popup": "public/popup.html"
+  },
+  "manifest_version": 2
+}
