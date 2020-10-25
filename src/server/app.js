@@ -38,19 +38,47 @@ app.post("/extractLectures", async (req, res) => {
 });
 
 app.post("/downloadLecture", async (req, res) => {
+  const courseTitle = req.query.courseTitle;
+  const sectionNo = req.query.sectionNo;
+  const sectionTitle = req.query.sectionTitle;
+  const lectureNo = req.query.lectureNo;
+  const lectureTitle = req.query.lectureTitle;
   const lecturePageHTML = req.body;
-  const lectureDetail = await extractLectureDetail(lecturePageHTML);
-  if (!isLectureDictoryExists(lectureDetail)) {
-    console.log(`download lecture: ${lectureDetail.title}`);
-    const directory = makeLectureDirectory(lectureDetail);
-    await Promise.all(
-      lectureDetail.attachments.map((attachment) =>
-        copyAttachment(attachment, directory)
-      )
-    );
-    console.log(`downloaded lecture: ${lectureDetail.title}`);
+  if (
+    !(
+      courseTitle &&
+      sectionNo &&
+      sectionTitle &&
+      lectureNo &&
+      lectureTitle &&
+      lecturePageHTML
+    )
+  ) {
+    res.status(400).send("");
+    return;
   }
-  res.status(204).send("");
+  try {
+    const lectureDetail = await extractLectureDetail(
+      lecturePageHTML,
+      courseTitle,
+      lectureNo,
+      lectureTitle,
+      sectionNo,
+      sectionTitle
+    );
+    if (!isLectureDictoryExists(lectureDetail)) {
+      console.log(`download lecture: ${lectureDetail.lectureTitle}`);
+      const directory = makeLectureDirectory(lectureDetail);
+      await Promise.all(
+        lectureDetail.attachments.map((attachment) =>
+          copyAttachment(attachment, directory).catch((e) => console.error(e))
+        )
+      );
+      console.log(`downloaded lecture: ${lectureDetail.lectureTitle}`);
+    }
+  } finally {
+    res.status(204).send("");
+  }
 });
 
 app.get("/_reload", (_, res) => {

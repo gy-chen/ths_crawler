@@ -8,6 +8,7 @@ const COLLECT_DIRECTORY =
 
 const normalizeFileName = (name) =>
   name
+    .replace(/\//g, "|")
     .replace(/\?/g, "")
     .replace(/-/g, " ")
     .split(" ")
@@ -15,19 +16,25 @@ const normalizeFileName = (name) =>
     .filter((w) => w)
     .join("_");
 
-const isLectureDictoryExists = (lectureDetail) => {
-  const lectureDirectoryPath = path.resolve(
+const getLectureDictoryPath = (lectureDetail) =>
+  path.resolve(
     COLLECT_DIRECTORY,
-    normalizeFileName(lectureDetail.title)
+    normalizeFileName(lectureDetail.courseTitle),
+    normalizeFileName(
+      `${lectureDetail.sectionNo} ${lectureDetail.sectionTitle}`
+    ),
+    normalizeFileName(
+      `${lectureDetail.lectureNo} ${lectureDetail.lectureTitle}`
+    )
   );
+
+const isLectureDictoryExists = (lectureDetail) => {
+  const lectureDirectoryPath = getLectureDictoryPath(lectureDetail);
   return fs.existsSync(lectureDirectoryPath);
 };
 
 const makeLectureDirectory = (lectureDetail) => {
-  const lectureDirectoryPath = path.resolve(
-    COLLECT_DIRECTORY,
-    normalizeFileName(lectureDetail.title)
-  );
+  const lectureDirectoryPath = getLectureDictoryPath(lectureDetail);
   fs.mkdirSync(lectureDirectoryPath, { recursive: true });
   return lectureDirectoryPath;
 };
@@ -42,11 +49,11 @@ const copyAttachment = async (attachment, directory) => {
       attachment.files.map(async (file) => {
         const filePath = path.resolve(
           directory,
-          normalizeFileName(file.file_name)
+          normalizeFileName(file.fileName)
         );
-        console.log(`copy ${file.file_url} to ${filePath}`);
-        await fsPromises.writeFile(filePath, await download(file.file_url));
-        console.log(`copied ${file.file_url} to ${filePath}`);
+        console.log(`copy ${file.fileUrl} to ${filePath}`);
+        await fsPromises.writeFile(filePath, await download(file.fileUrl));
+        console.log(`copied ${file.fileUrl} to ${filePath}`);
       })
     );
   }

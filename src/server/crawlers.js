@@ -11,16 +11,35 @@ const _prettifyLectureTitle = (title) =>
 const extractLectures = (coursePage) => {
   const $ = cheerio.load(coursePage);
 
-  const lectureInfos = $('.course-section a[href*="lectures"]')
-    .map((_, el) => ({
-      href: $(el).attr("href"),
-      title: _prettifyLectureTitle($(el).text()),
-    }))
-    .get();
+  const courseTitle = $(".course-sidebar h2").text();
+  const lectureInfos = $(".course-section")
+    .get()
+    .flatMap((el, sectionIndex) => {
+      const sectionTitle = _prettifyLectureTitle(
+        $(".section-title", el).clone().children().remove().end().text()
+      );
+      return $('.section-list a[href*="lectures"]', el)
+        .map((lectureIndex, el) => ({
+          courseTitle,
+          sectionNo: sectionIndex + 1,
+          sectionTitle,
+          lectureNo: lectureIndex + 1,
+          lectureTitle: _prettifyLectureTitle($(el).text()),
+          href: $(el).attr("href"),
+        }))
+        .get();
+    });
   return lectureInfos;
 };
 
-const extractLectureDetail = async (lecturePage, title) => {
+const extractLectureDetail = async (
+  lecturePage,
+  courseTitle,
+  lectureNo,
+  lectureTitle,
+  sectionNo,
+  sectionTitle
+) => {
   const $ = cheerio.load(lecturePage);
 
   const attachments = await Promise.all(
@@ -30,7 +49,12 @@ const extractLectureDetail = async (lecturePage, title) => {
       .map(extractAttachmentInfo)
   );
   return {
-    title: title || _prettifyLectureTitle($("#lecture_heading").text()),
+    courseTitle,
+    lectureNo,
+    lectureTitle:
+      lectureTitle || _prettifyLectureTitle($("#lecture_heading").text()),
+    sectionNo,
+    sectionTitle,
     attachments,
   };
 };
@@ -70,8 +94,8 @@ const getWistiaVideoDetail = async (wistiaId) => {
   );
   const data = await response.json();
   return {
-    file_url: data["media"]["assets"][0]["url"],
-    file_name: data["media"]["name"],
+    fileUrl: data["media"]["assets"][3]["url"],
+    fileName: data["media"]["name"],
   };
 };
 
@@ -92,8 +116,8 @@ const extractFileAttachment = (attachmentHTML) => {
 
   const files = $(".download")
     .map((_, n) => ({
-      file_url: $(n).attr("href"),
-      file_name: $(n).data("x-origin-download-name"),
+      fileUrl: $(n).attr("href"),
+      fileName: $(n).data("x-origin-download-name"),
     }))
     .get();
   return files.length !== 0

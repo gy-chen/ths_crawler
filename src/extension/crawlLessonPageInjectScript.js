@@ -10,7 +10,7 @@ const main = async () => {
   const lectureInfos = await extractLectureInfos(documentHTML);
   for (let info of lectureInfos) {
     const lectureHTML = await getPageHtml(info.href);
-    await downloadLecture(lectureHTML);
+    await downloadLecture(lectureHTML, info);
   }
 };
 

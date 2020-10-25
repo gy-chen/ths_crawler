@@ -18,8 +18,10 @@ export const extractLectureInfos = async (coursePageHTML) => {
   return await response.json();
 };
 
-export const downloadLecture = async (lecturePageHTML) => {
-  await fetch("http://127.0.0.1:4413/downloadLecture", {
+export const downloadLecture = async (lecturePageHTML, params = {}) => {
+  const url = new URL("http://127.0.0.1:4413/downloadLecture");
+  url.search = new URLSearchParams(params).toString();
+  await fetch(url, {
     method: "POST",
     body: lecturePageHTML,
     headers: {
